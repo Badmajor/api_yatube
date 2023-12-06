@@ -2,24 +2,13 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, \
     DestroyModelMixin
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
-from rest_framework.permissions import BasePermission, SAFE_METHODS
-
-from posts.models import Comment, Group, Post
 from rest_framework.viewsets import GenericViewSet
 
+from posts.models import Comment, Group, Post
+from .permissions import CustomPermission
 from .serializers import CommentSerializer, GroupSerializer, PostSerializer
-
-
-class CustomPermission(BasePermission):
-    def has_object_permission(self, request, view, obj):
-        if request.method in SAFE_METHODS:
-            return True
-        return obj.author == request.user
-
-    def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated)
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -54,7 +43,7 @@ class PostViewSet(viewsets.ModelViewSet):
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
-    permission_classes = [CustomPermission]
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
